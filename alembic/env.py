@@ -65,25 +65,22 @@ def run_migrations_online() -> None:
     from app.config import settings
     
     # Override the sqlalchemy.url with our settings
-    config.set_main_option('sqlalchemy.url', settings.database_url)
+    # Convert async URL to sync URL for Alembic
+    sync_database_url = settings.database_url
+    if sync_database_url.startswith('postgresql+asyncpg://'):
+        sync_database_url = sync_database_url.replace('postgresql+asyncpg://', 'postgresql://')
+    elif sync_database_url.startswith('sqlite+aiosqlite://'):
+        sync_database_url = sync_database_url.replace('sqlite+aiosqlite://', 'sqlite://')
     
-    # For SQLite, we need to use a synchronous engine for Alembic
+    config.set_main_option('sqlalchemy.url', sync_database_url)
+    
+    # Use synchronous engine for Alembic
     from sqlalchemy import create_engine
     
-    # Check if we're using SQLite
-    if settings.database_url.startswith('sqlite'):
-        # Use synchronous engine for SQLite
-        connectable = create_engine(
-            settings.database_url.replace('sqlite+aiosqlite', 'sqlite'),
-            poolclass=pool.NullPool,
-        )
-    else:
-        # For other databases, use the async engine but with sync adaptation
-        connectable = engine_from_config(
-            config.get_section(config.config_ini_section),
-            prefix="sqlalchemy.",
-            poolclass=pool.NullPool,
-        )
+    connectable = create_engine(
+        sync_database_url,
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(
