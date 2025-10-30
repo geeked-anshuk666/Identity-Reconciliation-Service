@@ -2,7 +2,7 @@ services:
   - type: web
     name: bitespeed-identity-service
     env: python
-    buildCommand: "pip install --no-cache-dir -r requirements.txt && alembic upgrade head"
+    buildCommand: "pip install --no-cache-dir --prefer-binary -r requirements.txt && alembic upgrade head"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
@@ -10,10 +10,12 @@ services:
           name: bitespeed-db
           property: connectionString
       - key: PYTHON_VERSION
-        value: 3.11.9
+        value: 3.11
       - key: PIP_DISABLE_PIP_VERSION_CHECK
         value: 1
       - key: PIP_NO_CACHE_DIR
+        value: 1
+      - key: PIP_PREFER_BINARY
         value: 1
 
 databases:
