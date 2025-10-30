@@ -67,7 +67,9 @@ def run_migrations_online() -> None:
     # Override the sqlalchemy.url with our settings
     # Convert async URL to sync URL for Alembic
     sync_database_url = settings.database_url
-    if sync_database_url.startswith('postgresql+asyncpg://'):
+    if sync_database_url.startswith('postgresql+psycopg2://'):
+        sync_database_url = sync_database_url.replace('postgresql+psycopg2://', 'postgresql://')
+    elif sync_database_url.startswith('postgresql+asyncpg://'):
         sync_database_url = sync_database_url.replace('postgresql+asyncpg://', 'postgresql://')
     elif sync_database_url.startswith('sqlite+aiosqlite://'):
         sync_database_url = sync_database_url.replace('sqlite+aiosqlite://', 'sqlite://')
