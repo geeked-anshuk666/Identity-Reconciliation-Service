@@ -1,0 +1,9 @@
+@echo off
+echo Installing dependencies...
+pip install -r requirements.txt
+
+echo Creating .env file if it doesn't exist...
+if not exist .env copy .env.example .env
+
+echo Starting the application...
+python run.py
