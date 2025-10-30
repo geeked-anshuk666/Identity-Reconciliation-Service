@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     
     @property
     def async_database_url(self) -> str:
-        """Convert PostgreSQL URL to asyncpg format for Render deployment"""
+        """Convert PostgreSQL URL to async format for Render deployment"""
         if self.database_url.startswith("postgresql://"):
-            return self.database_url.replace("postgresql://", "postgresql+asyncpg://")
+            return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
         return self.database_url
     
     class Config:
