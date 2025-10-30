@@ -4,6 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+import os
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -65,8 +66,15 @@ def run_migrations_online() -> None:
     from app.config import settings
     
     # Override the sqlalchemy.url with our settings
-    # Convert async URL to sync URL for Alembic
-    sync_database_url = settings.database_url
+    # Check if DATABASE_URL is provided by Render
+    render_database_url = os.environ.get("DATABASE_URL")
+    if render_database_url:
+        sync_database_url = render_database_url
+    else:
+        # Convert async URL to sync URL for Alembic
+        sync_database_url = settings.database_url
+    
+    # Convert to sync URL format for Alembic
     if sync_database_url.startswith('postgresql+psycopg2://'):
         sync_database_url = sync_database_url.replace('postgresql+psycopg2://', 'postgresql://')
     elif sync_database_url.startswith('postgresql+asyncpg://'):
