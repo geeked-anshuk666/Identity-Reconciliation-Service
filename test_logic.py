@@ -1,12 +1,20 @@
 """
-Simple test to verify our core identity reconciliation logic works
-without requiring all the complex dependencies.
+Standalone test implementation of the identity reconciliation logic
+
+This file provides a simplified, in-memory implementation of the core
+identity reconciliation algorithm for testing and verification purposes.
+It doesn't require database connections or complex dependencies.
 """
 
 from datetime import datetime
 from typing import Optional, List
 
 class Contact:
+    """Simplified Contact model for testing purposes
+    
+    This in-memory version mimics the database model but stores data
+    in Python lists instead of a database.
+    """
     def __init__(self, id: int, email: Optional[str] = None, phone_number: Optional[str] = None, 
                  linked_id: Optional[int] = None, link_precedence: str = "primary"):
         self.id = id
@@ -20,12 +28,21 @@ class Contact:
         self.secondary_contacts = []
 
 class IdentityService:
+    """Simplified Identity Service for testing purposes
+    
+    This in-memory version implements the same logic as the database-backed
+    service but uses Python lists for storage instead of a database.
+    """
     def __init__(self):
         self.contacts = []
         self.next_id = 1
-    
+
     def find_matching_contacts(self, email: Optional[str], phone_number: Optional[str]) -> List[Contact]:
-        """Find contacts by email or phone"""
+        """Find contacts by email or phone
+        
+        Searches through the in-memory contact list for matches.
+        Only returns non-deleted contacts.
+        """
         if not email and not phone_number:
             return []
             
@@ -41,12 +58,17 @@ class IdentityService:
         return matches
     
     def check_exact_match(self, contacts: List[Contact], email: Optional[str], phone_number: Optional[str]) -> Optional[Contact]:
-        """Check if both email and phone match the same contact"""
+        """Check if both email and phone match the same contact
+        
+        Used to identify Scenario C where we have an exact match and
+        don't need to create new contacts or modify existing ones.
+        """
         if not email or not phone_number:
             return None
             
         # Normalize email to lowercase
-        email = email.lower()
+        if email:
+            email = email.lower()
             
         for contact in contacts:
             if contact.email == email and contact.phone_number == phone_number:
@@ -54,7 +76,11 @@ class IdentityService:
         return None
     
     def create_primary_contact(self, email: Optional[str], phone_number: Optional[str]) -> Contact:
-        """Create a new primary contact when no matches found"""
+        """Create a new primary contact when no matches found
+        
+        Handles Scenario A where we have no existing contacts matching
+        the provided email or phone number.
+        """
         # Normalize email to lowercase
         if email:
             email = email.lower()
@@ -70,7 +96,11 @@ class IdentityService:
         return primary_contact
     
     def create_secondary_contact(self, email: Optional[str], phone_number: Optional[str], primary_id: int) -> Contact:
-        """Create a secondary contact linked to a primary"""
+        """Create a secondary contact linked to a primary
+        
+        Handles Scenario B where we have a partial match and need to
+        add new information to an existing contact's profile.
+        """
         # Normalize email to lowercase
         if email:
             email = email.lower()
@@ -93,7 +123,11 @@ class IdentityService:
         return secondary_contact
     
     def get_primary_contact(self, contact_id: int) -> Optional[Contact]:
-        """Get the primary contact from any contact ID"""
+        """Get the primary contact from any contact ID
+        
+        Traverses the linked contact chain to find the primary contact.
+        If the provided contact is already primary, returns it directly.
+        """
         contact = None
         for c in self.contacts:
             if c.id == contact_id:
@@ -122,14 +156,18 @@ class IdentityService:
         return current
     
     def handle_partial_match(self, existing_contact: Contact, email: Optional[str], phone_number: Optional[str]) -> Contact:
-        """Handle case where email OR phone matches, but not both"""
+        """Handle case where email OR phone matches, but not both
+        
+        Handles Scenario B where we have a partial match and may need
+        to create a secondary contact with additional information.
+        """
         # Get the primary contact (in case existing_contact is secondary)
         primary_contact = self.get_primary_contact(existing_contact.id)
         if not primary_contact:
             primary_contact = existing_contact
             
         # Check if new information is truly new
-        has_email = email and email.lower() != primary_contact.email
+        has_email = email and (email.lower() if email else None) != primary_contact.email
         has_phone = phone_number and phone_number != primary_contact.phone_number
         
         # Check secondary contacts for existing info
@@ -143,13 +181,17 @@ class IdentityService:
                 existing_phones.add(secondary.phone_number)
         
         # If new info, create secondary contact
-        if (has_email and email.lower() not in existing_emails) or (has_phone and phone_number not in existing_phones):
+        if (has_email and (email.lower() if email else None) not in existing_emails) or (has_phone and phone_number not in existing_phones):
             self.create_secondary_contact(email, phone_number, primary_contact.id)
             
         return primary_contact
     
     def link_primary_contacts(self, email_primary: Contact, phone_primary: Contact) -> Contact:
-        """Handle case where email matches one primary, phone matches another primary"""
+        """Handle case where email matches one primary, phone matches another primary
+        
+        Handles Scenario D where we need to link two separate primary
+        contacts because they actually belong to the same person.
+        """
         # Identify which primary is older (by created_at)
         if email_primary.created_at <= phone_primary.created_at:
             older_primary = email_primary
@@ -181,7 +223,12 @@ class IdentityService:
         return older_primary
     
     def get_consolidated_contact(self, primary_id: int) -> dict:
-        """Build consolidated response for a primary contact"""
+        """Build consolidated response for a primary contact
+        
+        Collects all emails and phone numbers associated with a primary contact,
+        including those from linked secondary contacts, and returns them in
+        the required response format.
+        """
         # Find primary contact
         primary_contact = None
         for contact in self.contacts:
@@ -225,6 +272,14 @@ class IdentityService:
     def identify_contact(self, email: Optional[str], phone_number: Optional[str]) -> dict:
         """
         Main entry point for identity reconciliation.
+        
+        This method handles the core logic for identifying and linking customer contacts
+        based on email and phone number combinations. It implements the four scenarios
+        outlined in the requirements:
+        - Scenario A: No existing contacts (create new primary)
+        - Scenario B: Partial match (add secondary info)
+        - Scenario C: Exact match (return existing)
+        - Scenario D: Link two separate primaries
         """
         # Validate at least one field is provided
         if not email and not phone_number:
@@ -295,44 +350,55 @@ class IdentityService:
 
 # Test the implementation
 def test_identity_service():
+    """Run comprehensive tests of the identity reconciliation logic
+    
+    This function demonstrates all four scenarios and key edge cases
+    using example data from the Back to the Future universe.
+    """
     service = IdentityService()
     
-    print("=== Test Scenario A: No Existing Contacts ===")
+    print("=== Test Scenario A: Creating a New Customer ===")
+    print("Customer provides email and phone for the first time")
     result = service.identify_contact("lorraine@hillvalley.edu", "123456")
     print(f"Result: {result}")
     print()
     
-    print("=== Test Scenario B: Partial Match (Same Phone, Different Email) ===")
+    print("=== Test Scenario B: Adding Information to Existing Customer ===")
+    print("Same phone number but different email (customer has new email)")
     result = service.identify_contact("mcfly@hillvalley.edu", "123456")
     print(f"Result: {result}")
     print()
     
-    print("=== Test Scenario C: Exact Match ===")
+    print("=== Test Scenario C: Recognizing Existing Customer ===")
+    print("Exact match - customer is submitting duplicate information")
     result = service.identify_contact("lorraine@hillvalley.edu", "123456")
     print(f"Result: {result}")
     print()
     
-    print("=== Test Scenario D: Link Two Separate Primary Contacts ===")
+    print("=== Test Scenario D: Merging Two Customer Histories ===")
+    print("Creating a second customer, then discovering they're the same person")
     # Create another primary contact
     result = service.identify_contact("doc@hillvalley.edu", "717171")
     print(f"Created second primary: {result}")
     
     # Now link them by providing data that matches both
+    # This simulates discovering that Lorraine (email) and Doc (phone) are connected
     result = service.identify_contact("lorraine@hillvalley.edu", "717171")
     print(f"Linked result: {result}")
     print()
     
-    print("=== Test Edge Case: Only Email ===")
+    print("=== Test Edge Case: Customer Provides Only Email ===")
     result = service.identify_contact("dave@hillvalley.edu", None)
     print(f"Result: {result}")
     print()
     
-    print("=== Test Edge Case: Only Phone ===")
+    print("=== Test Edge Case: Customer Provides Only Phone ===")
     result = service.identify_contact(None, "999999")
     print(f"Result: {result}")
     print()
     
-    print("=== Test Edge Case: Case Insensitive Email ===")
+    print("=== Test Edge Case: Email Case Insensitivity ===")
+    print("Same email with different case should link to existing customer")
     result = service.identify_contact("LORRAINE@HILLVALLEY.EDU", "111111")
     print(f"Result: {result}")
     print()

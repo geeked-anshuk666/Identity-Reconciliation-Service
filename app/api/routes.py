@@ -15,11 +15,31 @@ async def identify(
     """
     Identify and consolidate customer contact information.
     
-    - **email**: Customer email (optional if phoneNumber provided)
-    - **phoneNumber**: Customer phone number (optional if email provided)
+    This endpoint handles the core identity reconciliation logic, taking customer
+    contact information (email and/or phone number) and returning a consolidated
+    view of all related contacts.
     
-    Returns consolidated contact information with primary and secondary contacts.
+    The service intelligently links contacts based on the four scenarios:
+    - New customer (creates primary contact)
+    - Partial match (adds new info to existing contact)
+    - Exact match (returns existing contact)
+    - Linking two existing contacts (merges contact histories)
+    
+    Args:
+        request: IdentifyRequest containing email and/or phoneNumber
+        db: Database session (injected by FastAPI)
+    
+    Returns:
+        IdentifyResponse with consolidated contact information
     """
-    service = IdentityService(db)
-    result = await service.identify_contact(request.email, request.phoneNumber)
-    return result
+    # Initialize the identity service with the database session
+    identity_service = IdentityService(db)
+    
+    # Process the customer contact information
+    customer_response = await identity_service.identify_contact(
+        request.email, 
+        request.phoneNumber
+    )
+    
+    # Return the consolidated customer information
+    return customer_response
