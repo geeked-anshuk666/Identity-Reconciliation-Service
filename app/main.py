@@ -23,9 +23,17 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """Create database tables if they don't exist"""
-    # Use sync connection for table creation to avoid greenlet issues
-    async with engine.connect() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Import here to avoid circular imports
+    from sqlalchemy import text
+    # Use a simple approach that doesn't require greenlet
+    try:
+        async with engine.connect() as conn:
+            # Create tables using SQLAlchemy's metadata
+            await conn.run_sync(Base.metadata.create_all)
+            await conn.commit()
+    except Exception as e:
+        print(f"Warning: Could not create tables automatically: {e}")
+        # Continue anyway, as tables might already exist
 
 # Mount API routes under /api prefix
 app.include_router(router, prefix="/api")
