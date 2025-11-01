@@ -1,6 +1,6 @@
 # Bitespeed Identity Reconciliation Service
 
-Hey there! 👋 Welcome to the Bitespeed Identity Reconciliation Service. This nifty little web service helps us track and consolidate customer identities across multiple purchases by smartly linking their contact information (email addresses and phone numbers).
+Hey there! Welcome to the Bitespeed Identity Reconciliation Service. This nifty little web service helps us track and consolidate customer identities across multiple purchases by smartly linking their contact information (email addresses and phone numbers).
 
 Ever had a customer who signs up with their email, then later calls in with a phone number, and you're not sure if it's the same person? This service solves exactly that problem.
 
