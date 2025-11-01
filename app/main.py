@@ -23,8 +23,9 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """Create database tables if they don't exist"""
-    async with engine.begin() as database_connection:
-        await database_connection.run_sync(Base.metadata.create_all)
+    # Use sync connection for table creation to avoid greenlet issues
+    async with engine.connect() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # Mount API routes under /api prefix
 app.include_router(router, prefix="/api")
