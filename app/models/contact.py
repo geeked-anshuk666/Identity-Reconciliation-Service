@@ -17,50 +17,42 @@ class Contact(Base):
         Integer, 
         primary_key=True, 
         index=True, 
-        autoincrement=True,
-        description="Unique identifier for this contact record"
+        autoincrement=True
     )
     phone_number = Column(
         String, 
         nullable=True, 
-        index=True,
-        description="Customer's phone number"
+        index=True
     )
     email = Column(
         String, 
         nullable=True, 
-        index=True,
-        description="Customer's email address"
+        index=True
     )
     linked_id = Column(
         Integer, 
         ForeignKey("contacts.id"), 
         nullable=True, 
-        index=True,
-        description="ID of primary contact this record is linked to (for secondary records only)"
+        index=True
     )
     link_precedence = Column(
         String, 
-        nullable=False,
-        description="Whether this is a 'primary' or 'secondary' contact record"
+        nullable=False
     )
     created_at = Column(
         DateTime, 
         default=datetime.utcnow, 
-        nullable=False,
-        description="Timestamp when this record was created"
+        nullable=False
     )
     updated_at = Column(
         DateTime, 
         default=datetime.utcnow, 
         onupdate=datetime.utcnow, 
-        nullable=False,
-        description="Timestamp when this record was last updated"
+        nullable=False
     )
     deleted_at = Column(
         DateTime, 
-        nullable=True,
-        description="Timestamp when this record was soft-deleted (null if active)"
+        nullable=True
     )
     
     # Self-referential relationship for linked contacts

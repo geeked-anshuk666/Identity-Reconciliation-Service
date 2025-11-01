@@ -5,7 +5,13 @@ from app.schemas.response import IdentifyResponse
 from app.services.identity_service import IdentityService
 from app.database import get_db
 
+# Create router instance
 router = APIRouter()
+
+@router.get("/health")
+async def health_check():
+    """Health check endpoint for the API routes"""
+    return {"status": "ok", "message": "API routes are working"}
 
 @router.post("/identify", response_model=IdentifyResponse, status_code=200)
 async def identify(
