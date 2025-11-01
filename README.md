@@ -144,3 +144,11 @@ pytest
 ## Getting It Live
 
 The service is all set up for deployment on Render.com. Check out the `render.yaml` file for the specifics.
+
+## Deployment
+
+The service is currently deployed and accessible at:
+- **API Root**: https://identity-reconciliation-service-3ay7.onrender.com
+- **Swagger UI**: https://identity-reconciliation-service-3ay7.onrender.com/docs
+
+You can use the Swagger UI to test all the API endpoints interactively.
