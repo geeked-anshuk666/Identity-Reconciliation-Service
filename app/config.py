@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     Uses pydantic-settings for validation and type conversion.
     """
     database_url: str = Field(
-        default="",
+        default="sqlite+aiosqlite:///./bitespeed.db",
         description="Database connection string (fallback when DATABASE_URL not set)"
     )
     app_env: str = Field(
@@ -38,15 +38,19 @@ class Settings(BaseSettings):
         """
         # Check if DATABASE_URL is provided by Render
         render_database_url = os.environ.get("DATABASE_URL")
-        if render_database_url:
+        if render_database_url and render_database_url.strip():
             if render_database_url.startswith("postgresql://"):
                 return render_database_url.replace("postgresql://", "postgresql+psycopg2://")
             return render_database_url
         
         # Fallback to the database_url setting
-        if self.database_url.startswith("postgresql://"):
-            return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
-        return self.database_url
+        if self.database_url and self.database_url.strip():
+            if self.database_url.startswith("postgresql://"):
+                return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
+            return self.database_url
+        
+        # Final fallback to SQLite for local development
+        return "sqlite+aiosqlite:///./bitespeed.db"
     
     class Config:
         env_file = ".env"
