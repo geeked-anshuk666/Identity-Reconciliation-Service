@@ -1,6 +1,6 @@
-# Bitespeed Identity Reconciliation Service
+# Identity Reconciliation Service
 
-Hey there! Welcome to the Bitespeed Identity Reconciliation Service. This nifty little web service helps us track and consolidate customer identities across multiple purchases by smartly linking their contact information (email addresses and phone numbers).
+Hey there! Welcome to the Identity Reconciliation Service. This nifty little web service helps us track and consolidate customer identities across multiple purchases by smartly linking their contact information (email addresses and phone numbers).
 
 Ever had a customer who signs up with their email, then later calls in with a phone number, and you're not sure if it's the same person? This service solves exactly that problem.
 
@@ -17,7 +17,7 @@ Here's what we're working with:
 ## How's This Thing Organized
 
 ```
-bitespeed-identity-reconciliation/
+Identity-reconciliation/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                 # FastAPI application entry point
@@ -58,7 +58,7 @@ Alright, let's get this party started:
 1. **Grab the code**
    ```bash
    git clone <repository-url>
-   cd bitespeed-identity-reconciliation
+   cd identity-reconciliation
    ```
 
 2. **Set up your virtual environment**
